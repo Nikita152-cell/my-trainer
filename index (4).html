@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Интерактивные задачи по математике</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        h1 {
+            color: navy;
+        }
+        main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #task-text {
+            margin-bottom: 20px;
+            text-align: center; /* Центровка текста */
+        }
+        .input-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            width: 300px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .buttons-wrapper {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        #result {
+            margin-top: 20px;
+            font-weight: bold;
+            font-size: 20px;
+        }
+        details summary {
+            cursor: pointer;
+            font-style: italic;
+        }
+        details::before {
+            content: "➜";
+            position: absolute;
+            top: 0;
+            right: calc(100% + 10px);
+            transition: transform 0.3s ease-in-out;
+        }
+        details[open]::before {
+            transform: rotate(90deg);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Интерактивные задачи по математике</h1>
+    </header>
+    <main>
+        <section id="task-section">
+            <p id="task-text"></p> <!-- Без разбиения на части -->
+            <div class="input-container">
+                <input type="text" id="user-input" placeholder="Ваш ответ..." autofocus>
+            </div>
+            <div class="buttons-wrapper">
+                <button id="submit-btn">Проверить ответ</button>
+                <button id="change-task-btn">Следующая задача</button>
+                <button class="back-button" id="back-btn">Вернуться в главное меню</button>
+            </div>
+        </section>
+        <section id="result-section"></section>
+    </main>
+    <footer></footer>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const submitBtn = document.getElementById('submit-btn');
+            const changeTaskBtn = document.getElementById('change-task-btn');
+            const taskText = document.getElementById('task-text');
+            const userInput = document.getElementById('user-input');
+            const resultSection = document.getElementById('result-section');
+            const backBtn = document.getElementById('back-btn');
+
+            // Массив задач
+            const TASKS = [
+                {
+                    question: "Запишите наименьшее целое число X, для которого истинно высказывание: НЕ (X < 2) И НЕ (X > 10).",
+                    answer: "2",
+                    explanation: "Общее условие: число должно быть больше либо равным 2 и одновременно меньше либо равным 10. Подходит только одно число — 2."
+                },
+                {
+                    question: "Запишите наибольшее двузначное число, для которого истинно высказывание: (первая цифра нечётная) И НЕ (число делится на 3).",
+                    answer: "98",
+                    explanation: "При поиске наибольшего двузначного числа сначала ищем самую большую первую цифру (нечётную), затем исключаем числа, кратные трём. Таким образом, последнее такое число — 98."
+                },
+                {
+                    question: "Определите количество натуральных двузначных чисел, для которых истинно логическое выражение: НЕ (x нечётное) И НЕ (x > 51).",
+                    answer: "21",
+                    explanation: "Нужно считать чётные числа от 10 до 51 включительно. Их ровно 21."
+                },
+                {
+                    question: "Запишите наименьшее целое число X, для которого истинно высказывание: НЕ (X <= 8) И НЕ (X >= 15) И (X чётное).",
+                    answer: "10",
+                    explanation: "Исключаются числа ≤8 и ≥15, остаётся интервал от 9 до 14. Среди них первое чётное число — 10."
+                },
+                {
+                    question: "Запишите наибольшее целое число X, для которого истинно высказывание: НЕ (X <= 11) И НЕ (X >= 17) И (X нечётное).",
+                    answer: "15",
+                    explanation: "Ищем наибольшее нечётное число между 11 и 17. Подходящее число — 15."
+                },
+                {
+                    question: "Запишите наименьшее целое число X, для которого истинно высказывание: НЕ (X <= 7) И (X < 20).",
+                    answer: "8",
+                    explanation: "Необходимо число больше 7 и меньше 20. Первое такое число — 8."
+                },
+                {
+                    question: "Запишите наибольшее целое число X, для которого истинно высказывание: НЕ (X <= 13) И НЕ (X >= 19).",
+                    answer: "18",
+                    explanation: "Мы ищем максимальное число между 13 и 19. Это число — 18."
+                },
+                {
+                    question: "Запишите число X, для которого истинно высказывание: НЕ (X < 6) И (X < 7).",
+                    answer: "6",
+                    explanation: "Условие выполняется, если число X больше или равно 6 и строго меньше 7. Единственное возможное число — 6."
+                },
+                {
+                    question: "Запишите наименьшее натуральное двузначное число, для которого истинно высказывание: НЕ (первая цифра нечётная) И (число делится на 3).",
+                    answer: "12",
+                    explanation: "Первая цифра должна быть чётной, а число делиться на три. Простым перебором выясняем, что первым таким числом является 12."
+                },
+                {
+                    question: "Запишите число X, для которого истинно высказывание: (X < 8) И НЕ (X < 7).",
+                    answer: "7",
+                    explanation: "Условие требует числа, которое меньше 8, но не меньше 7. Ответ очевиден — 7."
+                }
+            ];
+
+            // Функция для замены ключевых слов жирным шрифтом
+            function highlightOperators(text) {
+                return text.replace(/(\bИ\b|\bИЛИ\b|\bНЕ\b)/gi, "<strong>$&</strong>");
+            }
+
+            // Генерация новой задачи
+            function generateNewTask() {
+                const newTask = TASKS[Math.floor(Math.random() * TASKS.length)]; // Выбираем случайную задачу
+                
+                // Сохраняем оригинал вопроса для дальнейшего поиска
+                taskText.dataset.fullQuestion = newTask.question;
+
+                // Выделяем ключевые слова жирным шрифтом
+                const highlightedQuestion = highlightOperators(newTask.question);
+
+                // Разделяем задачу на две части: до двоеточия и после
+                const colonPosition = highlightedQuestion.indexOf(':');
+                const firstPart = highlightedQuestion.slice(0, colonPosition + 1); // Включая двоеточие
+                const secondPart = highlightedQuestion.slice(colonPosition + 1).trim(); // После двоеточия
+
+                // Объединяем части с переносом строки
+                taskText.innerHTML = `${firstPart}<br/>${secondPart}`; // Ставим перенос строки после двоеточия
+
+                return newTask.answer;
+            }
+
+            // Запоминаем правильный ответ
+            let correctAnswer = generateNewTask();
+
+            // Функция обработки отправки ответа
+            submitBtn.addEventListener('click', function () {
+                const userAnswer = userInput.value.trim().replace(/[^a-zA-Z0-9]/g, '');
+                if (!userAnswer) {
+                    alert("Введите ответ!");
+                    return;
+                }
+
+                const isCorrect = userAnswer.toLowerCase() === correctAnswer.toLowerCase();
+                const resultMessage = isCorrect ?
+                                      '✅ <strong style="font-size: 24px;">Верно!</strong>'
+                                    : '❌ <strong style="font-size: 24px;">Неверно. Попробуйте снова</strong>';
+
+                // Получаем объяснение к текущей задаче, сравнивая по оригинальному тексту
+                const fullQuestion = taskText.dataset.fullQuestion;
+                const explanation = TASKS.find(t => t.question === fullQuestion)?.explanation || "";
+
+                // Выделяем текст объяснения крупным и жирным шрифтом
+                resultSection.innerHTML = `
+                  <details>
+                      <summary>${resultMessage}</summary>
+                      <hr/>
+                      <pre><span style="font-size: 18px; font-weight: bold;">${explanation}</span></pre>
+                  </details>
+              `;
+
+                // Очищаем поле ввода, но НЕ меняем задачу
+                userInput.value = '';
+            });
+
+            // Обработчик смены задачи
+            changeTaskBtn.addEventListener('click', function () {
+                correctAnswer = generateNewTask();
+                resultSection.innerHTML = '';
+                userInput.value = '';
+            });
+
+            // Обработчик возврата в главное меню
+            backBtn.addEventListener('click', function () {
+                window.location.href = 'index1.html'; // Переход на главную страницу
+            });
+        });
+    </script>
+</body>
+</html>

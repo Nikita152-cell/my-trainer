@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тренировка систем счисления</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        h1 {
+            color: navy;
+        }
+        main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #task-text {
+            margin-bottom: 20px;
+        }
+        /* Центрирование поля ввода */
+        .input-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            width: 300px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .buttons-wrapper {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        #result {
+            margin-top: 20px;
+            font-weight: bold;
+            font-size: 20px;
+        }
+        details summary {
+            cursor: pointer;
+            font-style: italic;
+        }
+        details::before {
+            content: "➜"; /* Горизонтальная черта */
+            position: absolute;
+            top: 0;
+            right: calc(100% + 10px);
+            transition: transform 0.3s ease-in-out;
+        }
+        details[open]::before {
+            transform: rotate(90deg); /* Поворот при раскрытии */
+        }
+    </style>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Тренировочные задания по теме: "Системы счисления"</h1>
+    </header>
+    <main>
+        <section id="task-section">
+            <p id="task-text"></p>
+            <div class="input-container">
+                <input type="text" id="user-input" placeholder="Введите ваш ответ здесь...">
+            </div>
+            <div class="buttons-wrapper">
+                <button id="submit-btn">Проверить ответ</button>
+                <button id="change-task-btn">Поменять задание</button>
+                <button class="back-button" id="back-btn">Вернуться в главное меню</button>
+            </div>
+        </section>
+        <section id="result-section"></section>
+    </main>
+    <footer></footer>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const submitBtn = document.getElementById('submit-btn');
+            const changeTaskBtn = document.getElementById('change-task-btn');
+            const taskText = document.getElementById('task-text');
+            const userInput = document.getElementById('user-input');
+            const resultSection = document.getElementById('result-section');
+            const backBtn = document.getElementById('back-btn');
+
+            // Начальное состояние
+            updateTask();
+
+            // Обработчик кликов по первой кнопке ("Отправить ответ")
+            submitBtn.addEventListener('click', function () {
+                const answer = userInput.value.trim(); // Получаем ответ пользователя
+                if (!answer) {
+                    alert('Введите ответ.');
+                    return;
+                }
+
+                // Проверяем ответ пользователя
+                const currentQuestion = taskText.textContent.split(':')[0].trim();
+                const expectedAnswer = taskData[currentQuestion]; // ожидаемое значение
+
+                if (answer.toLowerCase() === expectedAnswer.toLowerCase()) {
+                    showResult(true, detailedExplanation());
+                } else {
+                    showResult(false, detailedExplanation());
+                }
+
+                // Очищаем поле ввода и показываем следующее задание
+                userInput.value = '';
+            });
+
+            // Обработчик кликов по второй кнопке ("Поменять задание")
+            changeTaskBtn.addEventListener('click', function () {
+                updateTask(); // Генерация нового задания
+            });
+
+            // Обработка события нажатия на кнопку "Вернуться в главное меню"
+            backBtn.addEventListener('click', function () {
+                history.back(); // Возвращаемся на предыдущую страницу
+            });
+
+            // Функциональность обновления задания
+            function updateTask() {
+                const generatedTask = generateTask();
+                const question = generatedTask.question;
+                const correctAnswer = generatedTask.correctAnswer;
+
+                // Сохранение текущего вопроса и правильного ответа в глобальной переменной
+                taskData = {};
+                taskData[question] = correctAnswer;
+
+                // Отображение нового задания
+                taskText.textContent = `${question}:`;
+                clearResultSection(); // очистка предыдущего результата
+            }
+
+            // Функция, генерирующая детальные пояснения решения
+            function detailedExplanation() {
+                const currentQuestion = taskText.textContent.split(':')[0].trim();
+                const numberStr = currentQuestion.match(/\d+/)[0]; // Извлекаем число из строки задания
+
+                let explanation = '';
+
+                // Анализируем, какое преобразование требуется
+                if (currentQuestion.includes('двоичную')) {
+                    const number = parseInt(numberStr, 10); // Десятичное число
+                    const targetBase = 2;
+
+                    explanation += `<strong><h1>Решение:</strong><br>Число ${number} переводим в двоичную систему:<h1><br>`;
+
+                    let tempNum = number;
+                    let steps = [];
+
+                    while (tempNum > 0) {
+                        const remainder = tempNum % targetBase; // Остаток от деления
+                        tempNum = Math.floor(tempNum / targetBase); // Целая часть от деления
+                        steps.unshift({ remainder, quotient: tempNum }); // Добавляем шаг в начало массива
+                    }
+                    // Меняем порядок шагов: от большей степени к меньшей
+                    steps.reverse();
+
+                    // Формирование описания шагов без лишних пробелов
+                    steps.forEach(step => {
+                        explanation += `${step.quotient * targetBase + step.remainder} ÷ ${targetBase} = ${step.quotient}, остаток: ${step.remainder}<br>`;
+                    });
+
+                    const convertedNumber = number.toString(targetBase);
+                    explanation += `Получаем окончательную форму числа: ${convertedNumber}`;
+                } else if (currentQuestion.includes('шестнадцатеричную')) {
+                    const number = parseInt(numberStr, 10); // Десятичное число
+                    const targetBase = 16;
+
+                    explanation += `<strong><h1>Решение:</strong><br>Число ${number} переводим в шестнадцатеричную систему:<h1><br>`;
+                    let tempNum = number;
+                    let steps = [];
+
+                    while (tempNum > 0) {
+                        const remainder = tempNum % targetBase; // Остаток от деления
+                        tempNum = Math.floor(tempNum / targetBase); // Целая часть от деления
+                        steps.push({ remainder, quotient: tempNum }); // сохраняем данные каждой итерации
+                    }
+
+                    // Меняем порядок шагов: от большей степени к меньшей
+                    steps.reverse();
+
+                    steps.forEach(step => {
+                        explanation += `${step.quotient * targetBase + step.remainder} ÷ ${targetBase} = ${step.quotient}, остаток: ${step.remainder}<br>`;
+                    });
+
+                    const convertedNumber = number.toString(targetBase).toUpperCase();
+                    explanation += `Получаем окончательную форму числа: ${convertedNumber}`;
+                } else if (currentQuestion.includes('десятичную')) {
+                    const numberBin = parseInt(numberStr, 2); // Бинарное число
+                    const targetBase = 10;
+
+                    explanation += `<strong><h1>Решение:</strong><br>Число ${numberStr} переводим в десятичную систему:<h1><br>`;
+
+                    let sum = 0;
+                    const digits = numberStr.split(''); // Разделение бинарного числа на цифры
+                    const length = digits.length;
+                    digits.forEach((digit, index) => {
+                       const positionFromRight = length - 1 - index; // Позиция считается справа налево
+                   const pow = Math.pow(2, positionFromRight); // Степень двойки зависит от положения справа
+                   const partialSum = digit * pow;
+                   sum += partialSum;
+                   explanation += `${digit} x 2^${positionFromRight} = ${partialSum}<br>`;
+               });
+
+               explanation += `Суммируем части: ${sum}`;
+           }
+           return explanation;
+       }
+
+       // Вспомогательные функции
+       function clearResultSection() {
+           resultSection.innerHTML = '';
+       }
+
+       function showResult(isCorrect, explanation) {
+    const resultMessage = isCorrect ? '✅ <strong style="font-size: 24px;">Верно!</strong>' : '❌ <strong style="font-size: 24px;">Неверно. Попробуйте снова</strong>';
+
+    // Используем тег <details> для раскрывающегося контента
+    resultSection.innerHTML = `
+    <details>
+        <summary>${resultMessage}</summary>
+        <hr />
+        <pre>${explanation}</pre>
+    </details>
+    `;
+}
+
+       // Генератор случайных заданий
+       function generateTask() {
+           const systems = [
+               { type: 'DECIMAL_TO_BINARY' },           // Десятичная -> двоичная
+               { type: 'BINARY_TO_DECIMAL' },           // Двоичная -> десятичная
+               { type: 'DECIMAL_TO_HEXADECIMAL' }      // Десятичная -> шестнадцатеричная
+           ];
+
+           const chosenSystem = systems[Math.floor(Math.random() * systems.length)];
+           const number = Math.floor(Math.random() * 10000) + 1000; // Случайное число от 1 до 100
+
+           let question, correctAnswer;
+
+           switch (chosenSystem.type) {
+               case 'DECIMAL_TO_BINARY':
+                   question = `Преобразуйте число ${number} из десятичной системы в двоичную`;
+                   correctAnswer = number.toString(2);
+                   break;
+
+               case 'BINARY_TO_DECIMAL':
+                   const binNumber = number.toString(2); // Преобразуем число в двоичную систему
+                   question = `Преобразуйте число ${binNumber} из двоичной системы в десятичную`;
+                   correctAnswer = String(parseInt(binNumber, 2)); // Конвертируем обратно в десятичную
+                   break;
+
+               case 'DECIMAL_TO_HEXADECIMAL':
+                   question = `Преобразуйте число ${number} из десятичной системы в шестнадцатеричную`;
+                   correctAnswer = number.toString(16);
+                   break;
+           }
+
+           return { question, correctAnswer };
+       }
+   });
+</script>
+</body>
+</html>

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Кодирование и обработка информации</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        h1 {
+            color: navy;
+        }
+        form {
+            display: inline-block;
+            text-align: left;
+            margin: 0 auto;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+        input[type="radio"] {
+            margin-right: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        /* Расположим две кнопки горизонтально рядом */
+        .buttons-wrapper {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        #result {
+            margin-top: 20px;
+            font-weight: bold;
+            font-size: 20px;
+        }
+        details summary {
+            cursor: pointer;
+            font-style: italic;
+        }
+        details::before {
+            content: "➜ ";
+            position: absolute;
+            top: 0;
+            right: calc(100% + 10px);
+            transition: transform 0.3s ease-in-out;
+        }
+        details[open]::before {
+            transform: rotate(90deg);
+        }
+    </style>
+</head>
+<body>
+
+<h1>Тренировочные задания по теме: "Кодирование и обработка информации"</h1>
+
+<div id="task-container"></div>
+
+<div id="result"></div>
+
+<script>
+    // Много задач
+    const TASKS = [
+        {
+            question: "На сервере хранятся файлы разных типов, и каждому типу присвоен уникальный числовой код. Всего существует 256 типов файлов. Определите минимальный объём памяти (в битах), достаточный для хранения информации о типе файла.",
+            choices: ["8 бит", "16 бит", "32 бит", "64 бит"],
+            correctChoiceIndex: 0,
+            explanation: "Поскольку есть 256 типов файлов, и каждый тип уникален, нужно выбрать минимальное количество бит, которое способно представлять 256 различных значений. Поскольку 2^8 = 256, оптимальное количество бит — 8."
+        },
+        {
+            question: "Сколько байт займет хранение целого числа, если известно, что оно занимает 32 бита?",
+            choices: ["4 байта", "8 байт", "16 байт", "32 байта"],
+            correctChoiceIndex: 0,
+            explanation: "Один байт равен 8 битам. Значит, 32 бита делятся на 8 и получается ровно 4 байта."
+        },
+        {
+            question: "Какой минимальной длины должна быть цепочка бит, чтобы передать информацию о номере автомобиля, если номеров всего 1000?",
+            choices: ["10 бит", "11 бит", "12 бит", "13 бит"],
+            correctChoiceIndex: 1,
+            explanation: "Необходимое количество бит находим из неравенства 2^n >= 1000. Найдем ближайшее подходящее n: 2^(10)=1024, значит, подходит 10 бит. Но ближайшая степень меньше 1000 — это 2^9=512, следовательно, необходим следующий уровень — 11 бит."
+        },
+        {
+            question: "Сколько байт займет хранение целого числа, если известно, что оно занимает 64 бита?",
+            choices: ["4 байта", "8 байт", "16 байт", "32 байта"],
+            correctChoiceIndex: 1,
+            explanation: "Так как 1 байт равен 8 битам, делим 64 на 8 и получаем 8 байт."
+        },
+        {
+            question: "Какой минимальной длины должна быть цепочка бит, чтобы передавать информацию о дне месяца (учитывая, что месяц может иметь от 1 до 31 дня)?",
+            choices: ["4 бита", "5 бит", "6 бит", "7 бит"],
+            correctChoiceIndex: 1,
+            explanation: "Так как в месяце максимум 31 день, нужно подобрать такую мощность двойки, которая покрывала бы диапазон от 1 до 31. Минимальное количество бит: 2^5=32, то есть хватит 5 бит."
+        },
+        {
+            question: "Какое минимальное количество бит необходимо для уникальной идентификации каждого студента группы, если группа насчитывает 50 человек?",
+            choices: ["5 бит", "6 бит", "7 бит", "8 бит"],
+            correctChoiceIndex: 1,
+            explanation: "Определяем нужное количество бит по принципу: 2^n>=50. Ближайшие значения степеней двойки: 2^5=32 недостаточно, а 2^6=64 уже хватает, значит, оптимальный ответ — 6 бит."
+        },
+        {
+            question: "Один символ русской кириллицы в UTF-8 кодировке занимает максимум сколько байт?",
+            choices: ["1 байт", "2 байта", "3 байта", "4 байта"],
+            correctChoiceIndex: 1,
+            explanation: "Русский алфавит относится к многобайтовым символам, занимающим чаще всего 2 байта в UTF-8."
+        },
+        {
+            question: "Музыка была сжата в аудиоформате MP3, который сохраняет примерно 1 минуту музыки в размере около 1 мегабайта. Оцените приблизительный объем диска CD-R, вмещающего 80 минут музыки, в гигабайтах.",
+            choices: ["0.08 ГБ", "0.8 ГБ", "1.6 ГБ", "3.2 ГБ"],
+            correctChoiceIndex: 1,
+            explanation: "По условию, 1 минута ≈ 1 MB. Тогда 80 минут ≈ 80 MB. Учитывая, что 1 GB = 1024 MB, округлим и получим примерно 0.8 ГБ."
+        },
+        {
+            question: "Двухбайтовый регистр способен хранить какое наибольшее десятичное число?",
+            choices: ["65535", "32767", "16383", "8191"],
+            correctChoiceIndex: 0,
+            explanation: "Два байта составляют 16 бит. Наибольшее беззнаковое число, которое можно сохранить в 16 битах: 2^(16)-1=65535."
+        },
+        {
+            question: "Объем файла с текстом равен 1 Кб. Сколько бит содержится в этом файле?",
+            choices: ["8192 бита", "1024 бита", "512 бита", "2048 бита"],
+            correctChoiceIndex: 0,
+            explanation: "Так как 1 КБ = 1024 байта, а 1 байт = 8 бит, общий объем файла составит 1024 * 8 = 8192 бита."
+        },
+        {
+            question: "Если информация представлена одним символом Unicode, сколько бит она может занимать в худшем случае?",
+            choices: ["8 бит", "16 бит", "32 бит", "64 бит"],
+            correctChoiceIndex: 2,
+            explanation: "Unicode допускает представление символов вплоть до 32 бит в самой длинной форме кодировки."
+        }
+    ];
+
+    // Генерация случайной задачи
+    function generateRandomTask() {
+        const task = TASKS[Math.floor(Math.random() * TASKS.length)];
+        const taskQuestion = task.question;
+        const taskChoices = task.choices;
+        const correctChoiceIndex = task.correctChoiceIndex;
+        const explanation = task.explanation;
+
+        const taskForm = document.createElement('form');
+        taskForm.id = 'task-form';
+
+        const questionElement = document.createElement('p');
+        questionElement.textContent = taskQuestion;
+        taskForm.appendChild(questionElement);
+
+        taskChoices.forEach((choice, index) => {
+            const label = document.createElement('label');
+            const radioButton = document.createElement('input');
+            radioButton.type = 'radio';
+            radioButton.name = 'choice';
+            radioButton.value = index;
+            label.appendChild(radioButton);
+            label.appendChild(document.createTextNode(choice));
+            taskForm.appendChild(label);
+        });
+
+        // Контейнер для кнопок
+        const buttonsWrapper = document.createElement('div');
+        buttonsWrapper.className = 'buttons-wrapper';
+
+        // Кнопка "Проверить ответ"
+        const checkButton = document.createElement('button');
+        checkButton.type = 'submit';
+        checkButton.textContent = 'Проверить ответ';
+        buttonsWrapper.appendChild(checkButton);
+
+        // Кнопка "Поменять задание"
+        const nextButton = document.createElement('button');
+        nextButton.textContent = 'Поменять задание';
+        nextButton.className = 'next-button';
+        buttonsWrapper.appendChild(nextButton);
+
+        // Кнопка "Вернуться в главное меню"
+        const homeButton = document.createElement('button');
+        homeButton.textContent = 'Вернуться в главное меню';
+        homeButton.className = 'home-button';
+        homeButton.setAttribute('type', 'button'); // Определяем явно тип кнопки
+        homeButton.addEventListener('click', () => {
+            window.location.href = 'index1.html'; // Переход на главную страницу
+        });
+        buttonsWrapper.appendChild(homeButton);
+
+        taskForm.appendChild(buttonsWrapper);
+
+        return { taskForm, correctChoiceIndex, explanation };
+    }
+
+    // Функция для проверки ответа
+    function checkAnswer(correctChoiceIndex, explanation) {
+        const checkedRadio = document.querySelector('input[name="choice"]:checked');
+        if (checkedRadio) {
+            const userChoiceIndex = Number(checkedRadio.value);
+            if (userChoiceIndex === correctChoiceIndex) {
+                document.getElementById('result').innerHTML = '<details><summary>✅ Верно!</summary>' +
+                                                             '<p>' + explanation + '</p></details>';
+            } else {
+                document.getElementById('result').innerHTML = '<details><summary>❌ Неверно. Попробуйте снова.</summary>' +
+                                                             '<p>' + explanation + '</p></details>';
+            }
+        } else {
+            alert('Выберите хотя бы один вариант.'); // Только при проверке ответа
+        }
+    }
+
+    // Генерация нового задания
+    function nextTask() {
+        const taskContainer = document.getElementById('task-container');
+        while (taskContainer.firstChild) {
+            taskContainer.removeChild(taskContainer.lastChild);
+        }
+        // Очистка результата прошлого ответа
+        document.getElementById('result').innerHTML = '';
+
+        const { taskForm, correctChoiceIndex, explanation } = generateRandomTask();
+        taskContainer.appendChild(taskForm);
+        taskForm.onsubmit = (event) => {
+            event.preventDefault();
+            checkAnswer(correctChoiceIndex, explanation);
+        };
+        taskForm.querySelector('.next-button').addEventListener('click', nextTask);
+    }
+
+    // Главная логика загрузки страницы
+    window.addEventListener('load', () => {
+        nextTask(); // Первая задача при загрузке страницы
+    });
+</script>
+
+</body>
+</html>
